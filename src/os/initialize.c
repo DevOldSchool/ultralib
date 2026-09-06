@@ -13,15 +13,25 @@ extern __osExceptionVector __osExceptionPreamble[];
 
 extern OSPiHandle __Dom1SpeedParam;
 extern OSPiHandle __Dom2SpeedParam;
+#if BUILD_VERSION < VERSION_I
+extern s32 __osLeoInterrupt(void);
+#endif
 
 OSTime osClockRate = OS_CLOCK_RATE;
+#if BUILD_VERSION >= VERSION_I
 s32 osViClock = VI_NTSC_CLOCK;
+#endif
 u32 __osShutdown = 0;
 u32 __OSGlobalIntMask = OS_IM_ALL;
+#if BUILD_VERSION < VERSION_I
+s32 osDiskExist = 0;
+#endif
 #ifdef _FINALROM
 u32 __osFinalrom;
 #else
+#if BUILD_VERSION >= VERSION_I
 u32 __kmc_pt_mode;
+#endif
 #if BUILD_VERSION >= VERSION_K
 void* __printfunc = NULL;
 #endif
@@ -63,6 +73,10 @@ void INITIALIZE_FUNC() {
     u32 pifdata;
 #if BUILD_VERSION < VERSION_K
     u32 clock = 0;
+#endif
+#if BUILD_VERSION < VERSION_I
+    u32 leoStatus;
+    u32 stat;
 #endif
 
 #ifdef _FINALROM
@@ -106,6 +120,16 @@ void INITIALIZE_FUNC() {
         bzero(osAppNMIBuffer, OS_APP_NMI_BUFSIZE);
     }
 
+#if BUILD_VERSION < VERSION_I
+    WAIT_ON_IOBUSY(stat);
+    leoStatus = IO_READ(LEO_STATUS);
+    if (!(leoStatus & LEO_STATUS_PRESENCE_MASK)) {
+        osDiskExist = 1;
+        __osSetHWIntrRoutine(1, __osLeoInterrupt);
+    } else {
+        osDiskExist = 0;
+    }
+#else
     if (osTvType == OS_TV_PAL) {
         osViClock = VI_PAL_CLOCK;
     } else if (osTvType == OS_TV_MPAL) {
@@ -113,6 +137,7 @@ void INITIALIZE_FUNC() {
     } else {
         osViClock = VI_NTSC_CLOCK;
     }
+#endif
 
 #if BUILD_VERSION >= VERSION_J
     // Wait until there are no RCP interrupts
@@ -127,7 +152,7 @@ void INITIALIZE_FUNC() {
     IO_WRITE(AI_BITRATE_REG, AI_MAX_BIT_RATE - 1);
 #endif
 
-#if BUILD_VERSION < VERSION_K && !defined(_FINALROM)
+#if BUILD_VERSION >= VERSION_I && BUILD_VERSION < VERSION_K && !defined(_FINALROM)
     if (!__kmc_pt_mode) {
         int (*fnc)();
 #if BUILD_VERSION < VERSION_J
@@ -183,11 +208,11 @@ void INITIALIZE_FUNC() {
 #endif
 }
 
-#if !defined(_FINALROM) && BUILD_VERSION < VERSION_J
+#if !defined(_FINALROM) && BUILD_VERSION >= VERSION_I && BUILD_VERSION < VERSION_J
 void ptstart(void) {
 
 }
-#elif !defined(_FINALROM) && BUILD_VERSION < VERSION_K
+#elif !defined(_FINALROM) && BUILD_VERSION >= VERSION_J && BUILD_VERSION < VERSION_K
 static void ptstart(void) {
 
 }

@@ -26,7 +26,7 @@ OSPiHandle* __osPiTable = NULL;
 OSPiHandle __Dom1SpeedParam ALIGNED(0x8);
 OSPiHandle __Dom2SpeedParam ALIGNED(0x8);
 OSPiHandle* __osCurrentHandle[2] ALIGNED(0x8) = { &__Dom1SpeedParam, &__Dom2SpeedParam };
-#else
+#elif BUILD_VERSION >= VERSION_I
 extern OSPiHandle CartRomHandle;
 extern OSPiHandle LeoDiskHandle;
 OSPiHandle* __osCurrentHandle[2] ALIGNED(0x8) = { &CartRomHandle, &LeoDiskHandle };

@@ -7,6 +7,30 @@
 
 extern void* __printfunc;
 
+#if BUILD_VERSION < VERSION_I
+
+static void* proutSyncPrintf(void* str, const char* buf, size_t n) {
+#ifndef _FINALROM
+    u32 sent = 0;
+
+    while (sent < n) {
+        sent += __osRdbSend(buf + sent, n - sent, RDB_TYPE_GtoH_PRINT);
+    }
+#endif
+    return (void*)1;
+}
+
+void osSyncPrintf(const char* fmt, ...) {
+    int ans;
+    va_list ap;
+
+    va_start(ap, fmt);
+    ans = _Printf(proutSyncPrintf, NULL, fmt, ap);
+    va_end(ap);
+}
+
+#else
+
 #if BUILD_VERSION <= VERSION_J
 
 #ifndef _FINALROM
@@ -149,5 +173,7 @@ void rmonPrintf(const char* fmt, ...) {
     va_end(ap);
 #endif
 }
+
+#endif
 
 #endif

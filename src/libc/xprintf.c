@@ -1,4 +1,5 @@
 #include "PRinternal/macros.h"
+#include "PR/os_version.h"
 #include "string.h"
 #include "stdarg.h"
 #include "xstdio.h"
@@ -44,7 +45,7 @@ static void _Putfld(_Pft *px, va_list *pap, char code, char *ac);
 
 int _Printf(void* pfn(void*,const char*,size_t), void *arg, const char *fmt, va_list ap) {
     _Pft x;
-    
+
     x.nchar = 0;
 
     while (1) {
@@ -54,11 +55,24 @@ int _Printf(void* pfn(void*,const char*,size_t), void *arg, const char *fmt, va_
         static const char fchar[] = {' ', '+', '-', '#', '0', '\0'};
         static const unsigned int fbit[] = {FLAGS_SPACE, FLAGS_PLUS, FLAGS_MINUS, FLAGS_HASH, FLAGS_ZERO, 0};
         char ac[32];
+#if BUILD_VERSION < VERSION_I
+        unsigned int unused_stack[2];
+#endif
         s = fmt;
 
+#if BUILD_VERSION < VERSION_I
+        for (c = *s++; c > 0; c = *s++) {
+            if ('%' != c) {
+                continue;
+            }
+            s--;
+            break;
+        }
+#else
         for (c = *s; c != 0 && c != '%';) {
             c = *++s;
         }
+#endif
         
         PUT(fmt, s - fmt);
         
@@ -89,11 +103,15 @@ int _Printf(void* pfn(void*,const char*,size_t), void *arg, const char *fmt, va_
         } else if (*++s == '*') {
             x.prec = va_arg(ap, int);
             ++s;
-        } else 
-            for (x.prec = 0; isdigit(*s); s++) { 
-                if (x.prec < 999) 
-                    x.prec = x.prec * 10 + *s - '0'; 
+        } else
+#if BUILD_VERSION < VERSION_I
+            ATOI(x.prec, s);
+#else
+            for (x.prec = 0; isdigit(*s); s++) {
+                if (x.prec < 999)
+                    x.prec = x.prec * 10 + *s - '0';
             }
+#endif
 
 
         x.qual = strchr("hlL", *s) ? *s++ : '\0';
