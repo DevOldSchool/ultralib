@@ -448,8 +448,16 @@ savecontext:
     sd      $31, THREAD_GP31(k0)
 
     mflo    t0
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    nop
+    nop
+#endif
     sd      t0, THREAD_LO(k0)
     mfhi    t0
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    nop
+    nop
+#endif
     sd      t0, THREAD_HI(k0)
 
     lw      k1, THREAD_SR(k0)
@@ -1017,6 +1025,10 @@ LEAF(send_mesg)
     addu    ta1, ta1, t3
 
     rem     ta1, ta1, ta0
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    nop
+    nop
+#endif
     lw      ta0, MQ_MSG(t1)
     mul     ta1, ta1, 4
     addu    ta0, ta0, ta1
@@ -1200,6 +1212,9 @@ LEAF(__osPopThread)
     lw      v0, 0(a0) /* a0 is OSThread** */
     lw      t9, THREAD_NEXT(v0)
     sw      t9, 0(a0)
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    sw      zero, THREAD_NEXT(v0)
+#endif
     jr      ra
 END(__osPopThread)
 

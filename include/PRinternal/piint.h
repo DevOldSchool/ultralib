@@ -97,12 +97,14 @@
 #define LEO_ERROR_29 29 //
 #define LEO_ERROR_75 75
 
+#if !(defined(_DEBUG) && BUILD_VERSION <= VERSION_G)
 extern OSDevMgr __osPiDevMgr;
 extern OSPiHandle *__osCurrentHandle[];
 extern OSPiHandle CartRomHandle;
 extern OSPiHandle LeoDiskHandle;
 extern OSMesgQueue __osPiAccessQueue;
 extern u32 __osPiAccessQueueEnabled;
+#endif
 
 // These symbols were all renamed in 2.0J.
 #if BUILD_VERSION < VERSION_J

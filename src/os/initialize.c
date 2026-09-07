@@ -1,8 +1,13 @@
 #include "PR/os_internal.h"
 #include "PR/rcp.h"
 #include "PR/os_version.h"
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+#include "PR/os_convert.h"
+#include "PR/rdb.h"
+#endif
 #include "PRinternal/piint.h"
 
+#if !(defined(_DEBUG) && BUILD_VERSION <= VERSION_G)
 typedef struct {
     /* 0x0 */ unsigned int inst1;
     /* 0x4 */ unsigned int inst2;
@@ -10,9 +15,12 @@ typedef struct {
     /* 0xC */ unsigned int inst4;
 } __osExceptionVector;
 extern __osExceptionVector __osExceptionPreamble[];
+#endif
 
+#if BUILD_VERSION >= VERSION_J
 extern OSPiHandle __Dom1SpeedParam;
 extern OSPiHandle __Dom2SpeedParam;
+#endif
 #if BUILD_VERSION < VERSION_I
 extern s32 __osLeoInterrupt(void);
 #endif
@@ -24,7 +32,11 @@ s32 osViClock = VI_NTSC_CLOCK;
 u32 __osShutdown = 0;
 u32 __OSGlobalIntMask = OS_IM_ALL;
 #if BUILD_VERSION < VERSION_I
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+u32 osDiskExist = 0;
+#else
 s32 osDiskExist = 0;
+#endif
 #endif
 #ifdef _FINALROM
 u32 __osFinalrom;
@@ -49,7 +61,9 @@ void* __printfunc = NULL;
 static void ptstart(void);
 static void SPEED_PARAM_FUNC(void);
 #endif
+#if BUILD_VERSION >= VERSION_I
 extern __osExceptionVector __ptExceptionPreamble[];
+#endif
 
 #endif
 

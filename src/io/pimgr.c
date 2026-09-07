@@ -21,6 +21,10 @@ static OSMesgQueue piEventQueue ALIGNED(0x8);
 static OSMesg piEventBuf[1];
 
 OSDevMgr __osPiDevMgr = { 0 };
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+extern OSMesgQueue __osPiAccessQueue;
+extern u32 __osPiAccessQueueEnabled;
+#endif
 OSPiHandle* __osPiTable = NULL;
 #if BUILD_VERSION >= VERSION_J
 OSPiHandle __Dom1SpeedParam ALIGNED(0x8);

@@ -4,6 +4,14 @@
 #include "stdarg.h"
 #include "xstdio.h"
 
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+extern unsigned char __ctype[];
+extern char* optarg;
+extern int opterr;
+extern int optind;
+extern int optopt;
+#endif
+
 // TODO: these come from headers
 #ident "$Revision: 1.34 $"
 #ident "$Revision: 1.5 $"
@@ -55,12 +63,20 @@ int _Printf(void* pfn(void*,const char*,size_t), void *arg, const char *fmt, va_
         static const char fchar[] = {' ', '+', '-', '#', '0', '\0'};
         static const unsigned int fbit[] = {FLAGS_SPACE, FLAGS_PLUS, FLAGS_MINUS, FLAGS_HASH, FLAGS_ZERO, 0};
         char ac[32];
-#if BUILD_VERSION < VERSION_I
+#if BUILD_VERSION < VERSION_I && !(defined(_DEBUG) && BUILD_VERSION <= VERSION_G)
         unsigned int unused_stack[2];
 #endif
         s = fmt;
 
 #if BUILD_VERSION < VERSION_I
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+        while ((c = *s++) > 0) {
+            if ('%' == c) {
+                s--;
+                break;
+            }
+        }
+#else
         for (c = *s++; c > 0; c = *s++) {
             if ('%' != c) {
                 continue;
@@ -68,6 +84,7 @@ int _Printf(void* pfn(void*,const char*,size_t), void *arg, const char *fmt, va_
             s--;
             break;
         }
+#endif
 #else
         for (c = *s; c != 0 && c != '%';) {
             c = *++s;

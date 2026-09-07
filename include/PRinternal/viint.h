@@ -1,7 +1,11 @@
 #ifndef _VIINT_H
 #define _VIINT_H
-#include "PR/os_internal.h"
 #include "PR/os_version.h"
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+#include "PR/os.h"
+#else
+#include "PR/os_internal.h"
+#endif
 
 #define OS_TV_TYPE_PAL 0
 #define OS_TV_TYPE_NTSC 1
@@ -68,10 +72,18 @@ typedef struct
 } __OSViContext; // 0x30 bytes
 
 void __osViSwapContext(void);
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+extern OSDevMgr __osViDevMgr;
+extern __OSViContext *__osViCurr;
+extern __OSViContext *__osViNext;
+#else
 extern __OSViContext *__osViCurr;
 extern __OSViContext *__osViNext;
 extern u32 __additional_scanline;
+#endif
 __OSViContext *__osViGetCurrentContext(void);
 void __osViInit(void);
+#if !defined(_DEBUG) || BUILD_VERSION > VERSION_G
 extern OSDevMgr __osViDevMgr;
+#endif
 #endif

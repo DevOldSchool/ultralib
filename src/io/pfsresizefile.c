@@ -60,8 +60,14 @@ s32 osPfsReSizeFile(OSPfs* pfs, u16 company_code, u32 game_code, u8* game_name, 
             return PFS_ERR_INCONSISTENT;
         }
 
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+        startpage = dir.start_page.inode_t.page;
+        prevbankfinalpage = startpage;
+        oldsizeinpages = 0;
+#else
         oldsizeinpages = 0;
         prevbankfinalpage = startpage = dir.start_page.inode_t.page;
+#endif
 
         for (bank = dir.start_page.inode_t.bank; bank < pfs->banks;) {
             ERRCK(__osPfsRWInode(pfs, &inode, PFS_READ, bank));
@@ -74,8 +80,14 @@ s32 osPfsReSizeFile(OSPfs* pfs, u16 company_code, u32 game_code, u8* game_name, 
                 page = inode.inode_page[page.inode_t.page];
 
                 if (page.inode_t.bank != bank) {
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+                    startpage = page.inode_t.page;
+                    bank = page.inode_t.bank;
+                    prevbankfinalpage = page.inode_t.page;
+#else
                     bank = page.inode_t.bank;
                     prevbankfinalpage = startpage = page.inode_t.page;
+#endif
                     break;
                 }
             }
@@ -112,8 +124,7 @@ s32 osPfsReSizeFile(OSPfs* pfs, u16 company_code, u32 game_code, u8* game_name, 
                 ERRCK(__osPfsDeclearPage(pfs, &inode, remaining, &startpage, bank, &decleared, &finalpage));
 
                 if (startpage != -1) {
-                    if (numbanksprocessed == 0 && origlastbank == bank) {
-                    } else {
+                    if (numbanksprocessed != 0 || origlastbank != bank) {
                         numbanksadded++;
                         previnode.inode_page[prevbankfinalpage].inode_t.bank = bank;
                         previnode.inode_page[prevbankfinalpage].inode_t.page = startpage;
@@ -231,9 +242,9 @@ s32 osPfsReSizeFile(OSPfs* pfs, u16 company_code, u32 game_code, u8* game_name, 
         }
 
         return ret;
+    } else {
+        return PFS_ERR_INVALID;
     }
-
-    return PFS_ERR_INVALID;
 }
 
 #endif

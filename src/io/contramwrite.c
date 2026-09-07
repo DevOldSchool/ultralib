@@ -4,7 +4,9 @@
 #include "PRinternal/controller.h"
 #include "PRinternal/siint.h"
 
+#if BUILD_VERSION >= VERSION_J
 extern s32 __osPfsLastChannel;
+#endif
 
 #define READFORMAT(ptr) ((__OSContRamReadFormat*)(ptr))
 

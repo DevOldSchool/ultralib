@@ -9,14 +9,24 @@ void __osDevMgrMain(void* args) {
     OSMesg dummy;
     s32 ret;
     OSDevMgr* dm;
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    s32 messageSend = 0;
+#else
     u32 messageSend;
+#endif
     __OSBlockInfo* blockInfo;
     __OSTranxInfo* info;
 
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+    dm = (OSDevMgr*)args;
+    mb = NULL;
+    ret = 0;
+#else
     messageSend = 0;
     mb = NULL;
     ret = 0;
     dm = (OSDevMgr*)args;
+#endif
 
     while (TRUE) {
         osRecvMesg(dm->cmdQueue, (OSMesg)&mb, OS_MESG_BLOCK);
@@ -42,6 +52,15 @@ void __osDevMgrMain(void* args) {
             __osResetGlobalIntMask(OS_IM_PI);
             __osEPiRawWriteIo(mb->piHandle, LEO_BM_CTL, info->bmCtlShadow | LEO_BM_CTL_START);
 
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+        readblock1:
+            osRecvMesg(dm->evtQueue, &em, OS_MESG_BLOCK);
+            osSendMesg(mb->hdr.retQueue, mb, OS_MESG_NOBLOCK);
+            if (messageSend == 1 && mb->piHandle->transferInfo.block[0].errStatus == LEO_ERROR_GOOD) {
+                messageSend = 0;
+                goto readblock1;
+            }
+#else
             do {
                 osRecvMesg(dm->evtQueue, &em, OS_MESG_BLOCK);
                 osSendMesg(mb->hdr.retQueue, mb, OS_MESG_NOBLOCK);
@@ -50,6 +69,7 @@ void __osDevMgrMain(void* args) {
                 }
                 messageSend = 0;
             } while (TRUE);
+#endif
 
             osSendMesg(dm->acsQueue, NULL, OS_MESG_NOBLOCK);
             if (mb->piHandle->transferInfo.blockNum == 1) {

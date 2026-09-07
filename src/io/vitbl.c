@@ -1,6 +1,12 @@
 #include "PR/os.h"
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+#define _ULTRALIB_G_NO_OS_INTERNAL_DECLS
+#endif
 #include "PR/rcp.h"
 #include "PRinternal/viint.h"
+#if defined(_DEBUG) && BUILD_VERSION <= VERSION_G
+#undef _ULTRALIB_G_NO_OS_INTERNAL_DECLS
+#endif
 
 OSViMode osViModeTable[] = {
     { OS_VI_NTSC_LPN1, // type
