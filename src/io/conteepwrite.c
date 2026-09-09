@@ -230,15 +230,9 @@ s32 __osEepStatus(OSMesgQueue* mq, OSContStatus* data) {
     __osEepPifRam.pifstatus = CONT_CMD_EXE;
     ptr = (u8*)__osEepPifRam.ramarray;
 
-#if BUILD_VERSION < VERSION_I
-    for (i = 0; i < MAXCONTROLLERS; i++) {
-        *ptr++ = 0;
-    }
-#else
     for (i = 0; i < MAXCONTROLLERS; i++) {
         *ptr++ = CONT_CMD_REQUEST_STATUS;
     }
-#endif
 
     requestformat.dummy = CONT_CMD_NOP;
     requestformat.txsize = CONT_CMD_REQUEST_STATUS_TX;

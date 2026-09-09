@@ -3,6 +3,12 @@
 #include "PRinternal/controller.h"
 #include "PRinternal/siint.h"
 
+#if BUILD_VERSION < VERSION_I
+#define CONTROLLER_INIT_DELAY_US 500000U
+#define USEC_PER_SEC 1000000U
+#define CONTROLLER_INIT_DELAY_CYCLES (CONTROLLER_INIT_DELAY_US * osClockRate / USEC_PER_SEC)
+#endif
+
 OSPifRam __osContPifRam;
 u8 __osContLastCmd;
 u8 __osMaxControllers;
@@ -28,9 +34,9 @@ s32 osContInit(OSMesgQueue* mq, u8* bitpattern, OSContStatus* data) {
 
     t = osGetTime();
 #if BUILD_VERSION < VERSION_I
-    if ((500000 * osClockRate / 1000000) > t) {
+    if (CONTROLLER_INIT_DELAY_CYCLES > t) {
         osCreateMesgQueue(&timerMesgQueue, &dummy, 1);
-        osSetTimer(&mytimer, (500000 * osClockRate / 1000000) - t, 0, &timerMesgQueue, &dummy);
+        osSetTimer(&mytimer, CONTROLLER_INIT_DELAY_CYCLES - t, 0, &timerMesgQueue, &dummy);
         osRecvMesg(&timerMesgQueue, &dummy, OS_MESG_BLOCK);
     }
 #else

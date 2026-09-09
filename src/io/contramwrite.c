@@ -108,7 +108,7 @@ s32 __osContRamWrite(OSMesgQueue* mq, int channel, u16 address, u8* buffer, int 
         for (i = 0; i < ARRLEN(__osPfsPifRam.ramarray) + 1; i++) {
             __osPfsPifRam.ramarray[i] = CONT_CMD_NOP;
         }
-        __osPfsPifRam.pifstatus = 0;
+        __osPfsPifRam.pifstatus = CONT_CMD_REQUEST_STATUS;
 #endif
         ret = __osSiRawStartDma(OS_READ, &__osPfsPifRam);
         osRecvMesg(mq, NULL, OS_MESG_BLOCK);
@@ -171,11 +171,7 @@ static void __osPackRamWriteData(int channel, u16 address, u8 *buffer) {
     
     if (channel != 0) {
         for (i = 0; i < channel; i++) {
-#if BUILD_VERSION < VERSION_I
-            *ptr++ = 0;
-#else
             *ptr++ = CONT_CMD_REQUEST_STATUS;
-#endif
         }
     }
     
